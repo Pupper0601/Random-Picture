@@ -7,12 +7,21 @@ function has_query($query)
     return isset($_GET[$query]);
 }
 
-if (file_exists(__DIR__ . '/url.csv')) // in the same folder
+$csv_path = __DIR__ . '/../url.csv';
+if (file_exists(__DIR__ . '/url.csv')) {
     $imgs_array = file(__DIR__ . '/url.csv', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-else if (file_exists('../url.csv'))    // in the parent folder
-    $imgs_array = file('../url.csv', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-else                                   // for vercel runtime
-    $imgs_array = file('http://' . $_SERVER['HTTP_HOST'] . '/url.csv', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+} else if (file_exists($csv_path)) {
+    $imgs_array = file($csv_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+} else if (!empty($_SERVER['HTTP_HOST'])) {
+    $csv_url = 'http://' . $_SERVER['HTTP_HOST'] . '/url.csv';
+    $csv_content = @file_get_contents($csv_url);
+    if ($csv_content !== false) {
+        $imgs_array = explode("\n", trim($csv_content));
+    }
+}
+if (!isset($imgs_array) || !is_array($imgs_array)) {
+    $imgs_array = array();
+}
 if (count($imgs_array) == 0) $imgs_array = array('https://http.cat/503');
 
 
